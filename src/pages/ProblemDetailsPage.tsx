@@ -54,12 +54,12 @@ export const ProblemDetailsPage: React.FC<Props> = ({
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
 
-  const isBookmarked = bookmarkedProblemIds.includes(problem.id);
+  const isBookmarked = bookmarkedProblemIds?.includes(problem.id) || false;
 
   // Load student note from bookmarks
   useEffect(() => {
     const b = storageService.getBookmarks();
-    setStudentNote(b.researchNotes[problem.id] || '');
+    setStudentNote(b?.researchNotes?.[problem.id] || '');
   }, [problem.id]);
 
   // Load AI / Heuristic Analysis
@@ -82,10 +82,10 @@ export const ProblemDetailsPage: React.FC<Props> = ({
   };
 
   // Get related project solutions
-  const existingSolutions = allProjects.filter(p => problem.projectSolutionIds.includes(p.id));
+  const existingSolutions = (allProjects || []).filter(p => problem.projectSolutionIds?.includes(p.id) || false);
 
   // Get related problems
-  const relatedProblems = allProblems.filter(p => problem.relatedProblemIds?.includes(p.id) || (p.domain === problem.domain && p.id !== problem.id)).slice(0, 3);
+  const relatedProblems = (allProblems || []).filter(p => problem.relatedProblemIds?.includes(p.id) || (p.domain === problem.domain && p.id !== problem.id)).slice(0, 3);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
@@ -241,7 +241,7 @@ export const ProblemDetailsPage: React.FC<Props> = ({
               <span>Expected Deliverables & Jury Criteria</span>
             </h3>
             <ul className="space-y-2.5">
-              {problem.expectedDeliverables.map((item, idx) => (
+              {(problem.expectedDeliverables || []).map((item, idx) => (
                 <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700">
                   <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200">
                     {idx + 1}
@@ -262,7 +262,7 @@ export const ProblemDetailsPage: React.FC<Props> = ({
               Jury evaluations favor teams that identify unaddressed edge cases from previous hackathon submissions:
             </p>
             <div className="space-y-2.5">
-              {problem.winningOpportunityAngles.map((angle, idx) => (
+              {(problem.winningOpportunityAngles || []).map((angle, idx) => (
                 <div key={idx} className="p-3 bg-white rounded-xl border border-amber-200/70 text-xs text-slate-700 leading-relaxed shadow-xs flex items-start gap-2">
                   <span className="text-amber-500 font-bold text-sm leading-none">&bull;</span>
                   <span>{angle}</span>

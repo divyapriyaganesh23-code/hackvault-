@@ -16,90 +16,177 @@ export interface AIConfig {
   model?: string;
 }
 
-// Storage helpers
+function sanitizeProblem(p: any): ProblemStatement {
+  return {
+    id: p?.id || 'prob-' + Math.random().toString(36).slice(2, 7),
+    code: p?.code || 'HACK-001',
+    title: p?.title || 'Untitled Problem Statement',
+    organization: p?.organization || 'Open Organization',
+    hackathonName: p?.hackathonName || 'National Hackathon',
+    hackathonYear: typeof p?.hackathonYear === 'number' ? p.hackathonYear : 2024,
+    domain: p?.domain || 'General',
+    category: p?.category || 'Software',
+    difficulty: p?.difficulty || 'Intermediate',
+    originalStatement: p?.originalStatement || '',
+    simpleExplanationEn: p?.simpleExplanationEn || '',
+    simpleExplanationTa: p?.simpleExplanationTa || '',
+    backgroundContext: p?.backgroundContext || '',
+    expectedDeliverables: Array.isArray(p?.expectedDeliverables) ? p.expectedDeliverables : [],
+    suggestedTechStack: Array.isArray(p?.suggestedTechStack) ? p.suggestedTechStack : [],
+    winningOpportunityAngles: Array.isArray(p?.winningOpportunityAngles) ? p.winningOpportunityAngles : [],
+    officialSourceUrl: p?.officialSourceUrl || '',
+    verifiedSource: Boolean(p?.verifiedSource),
+    participantCount: typeof p?.participantCount === 'number' ? p.participantCount : undefined,
+    relatedProblemIds: Array.isArray(p?.relatedProblemIds) ? p.relatedProblemIds : [],
+    projectSolutionIds: Array.isArray(p?.projectSolutionIds) ? p.projectSolutionIds : [],
+    createdAt: p?.createdAt || new Date().toISOString()
+  };
+}
+
+function sanitizeProject(p: any): ProjectSolution {
+  return {
+    id: p?.id || 'sol-' + Math.random().toString(36).slice(2, 7),
+    problemId: p?.problemId || '',
+    name: p?.name || 'Untitled Solution',
+    shortDescription: p?.shortDescription || '',
+    approach: p?.approach || '',
+    hackathonName: p?.hackathonName || 'Hackathon',
+    hackathonYear: typeof p?.hackathonYear === 'number' ? p.hackathonYear : 2024,
+    teamName: p?.teamName,
+    verificationStatus: p?.verificationStatus || 'Community Project',
+    technologies: Array.isArray(p?.technologies) ? p.technologies : [],
+    githubUrl: p?.githubUrl || '',
+    liveUrl: p?.liveUrl,
+    demoVideoUrl: p?.demoVideoUrl,
+    presentationUrl: p?.presentationUrl,
+    features: Array.isArray(p?.features) ? p.features : [],
+    limitations: Array.isArray(p?.limitations) ? p.limitations : [],
+    keyInnovations: Array.isArray(p?.keyInnovations) ? p.keyInnovations : [],
+    isVerifiedLink: Boolean(p?.isVerifiedLink),
+    lastCheckedDate: p?.lastCheckedDate || new Date().toISOString().split('T')[0]
+  };
+}
+
 export const storageService = {
   getProblems(): ProblemStatement[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.PROBLEMS);
-    if (!raw) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.PROBLEMS);
+      if (!raw) {
+        this.saveProblems(INITIAL_PROBLEMS);
+        return INITIAL_PROBLEMS;
+      }
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(sanitizeProblem);
+      }
       this.saveProblems(INITIAL_PROBLEMS);
       return INITIAL_PROBLEMS;
-    }
-    try {
-      return JSON.parse(raw);
     } catch {
       return INITIAL_PROBLEMS;
     }
   },
 
   saveProblems(problems: ProblemStatement[]): void {
-    localStorage.setItem(STORAGE_KEYS.PROBLEMS, JSON.stringify(problems));
+    try {
+      localStorage.setItem(STORAGE_KEYS.PROBLEMS, JSON.stringify(problems));
+    } catch (e) {
+      console.warn('LocalStorage save failed:', e);
+    }
   },
 
   getProjects(): ProjectSolution[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-    if (!raw) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.PROJECTS);
+      if (!raw) {
+        this.saveProjects(INITIAL_PROJECTS);
+        return INITIAL_PROJECTS;
+      }
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(sanitizeProject);
+      }
       this.saveProjects(INITIAL_PROJECTS);
       return INITIAL_PROJECTS;
-    }
-    try {
-      return JSON.parse(raw);
     } catch {
       return INITIAL_PROJECTS;
     }
   },
 
   saveProjects(projects: ProjectSolution[]): void {
-    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+    try {
+      localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+    } catch (e) {
+      console.warn('LocalStorage save failed:', e);
+    }
   },
 
   getHackathons(): HackathonEvent[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.HACKATHONS);
-    if (!raw) {
-      this.saveHackathons(INITIAL_HACKATHONS);
-      return INITIAL_HACKATHONS;
-    }
     try {
-      return JSON.parse(raw);
+      const raw = localStorage.getItem(STORAGE_KEYS.HACKATHONS);
+      if (!raw) {
+        this.saveHackathons(INITIAL_HACKATHONS);
+        return INITIAL_HACKATHONS;
+      }
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+      return INITIAL_HACKATHONS;
     } catch {
       return INITIAL_HACKATHONS;
     }
   },
 
   saveHackathons(hackathons: HackathonEvent[]): void {
-    localStorage.setItem(STORAGE_KEYS.HACKATHONS, JSON.stringify(hackathons));
+    try {
+      localStorage.setItem(STORAGE_KEYS.HACKATHONS, JSON.stringify(hackathons));
+    } catch (e) {
+      console.warn('LocalStorage save failed:', e);
+    }
   },
 
   getBookmarks(): UserBookmark {
-    const raw = localStorage.getItem(STORAGE_KEYS.BOOKMARKS);
-    if (!raw) {
-      const initial: UserBookmark = {
-        problemIds: ['prob-sih-railway-01', 'prob-google-sign-05'],
-        projectIds: ['sol-railguard-ai'],
-        collections: [
-          {
-            id: 'col-1',
-            name: 'SIH 2025 AI Shortlist',
-            description: 'Top problems with edge computing and computer vision solutions',
-            problemIds: ['prob-sih-railway-01', 'prob-sih-ayush-02'],
-            createdAt: new Date().toISOString()
-          }
-        ],
-        researchNotes: {
-          'prob-sih-railway-01': 'Check previous solution RailGuard AI. We can improve it by adding acoustic vibration sensors for internal rail fractures that optical cameras miss!'
+    const defaultBookmarks: UserBookmark = {
+      problemIds: ['prob-sih-railway-01', 'prob-google-sign-05'],
+      projectIds: ['sol-railguard-ai'],
+      collections: [
+        {
+          id: 'col-1',
+          name: 'SIH 2025 AI Shortlist',
+          description: 'Top problems with edge computing and computer vision solutions',
+          problemIds: ['prob-sih-railway-01', 'prob-sih-ayush-02'],
+          createdAt: new Date().toISOString()
         }
-      };
-      this.saveBookmarks(initial);
-      return initial;
-    }
+      ],
+      researchNotes: {
+        'prob-sih-railway-01': 'Check previous solution RailGuard AI. We can improve it by adding acoustic vibration sensors for internal rail fractures that optical cameras miss!'
+      }
+    };
+
     try {
-      return JSON.parse(raw);
+      const raw = localStorage.getItem(STORAGE_KEYS.BOOKMARKS);
+      if (!raw) {
+        this.saveBookmarks(defaultBookmarks);
+        return defaultBookmarks;
+      }
+      const parsed = JSON.parse(raw);
+      return {
+        problemIds: Array.isArray(parsed?.problemIds) ? parsed.problemIds : [],
+        projectIds: Array.isArray(parsed?.projectIds) ? parsed.projectIds : [],
+        collections: Array.isArray(parsed?.collections) ? parsed.collections : [],
+        researchNotes: parsed?.researchNotes && typeof parsed.researchNotes === 'object' ? parsed.researchNotes : {}
+      };
     } catch {
-      return { problemIds: [], projectIds: [], collections: [], researchNotes: {} };
+      return defaultBookmarks;
     }
   },
 
   saveBookmarks(bookmarks: UserBookmark): void {
-    localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(bookmarks));
+    try {
+      localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(bookmarks));
+    } catch (e) {
+      console.warn('LocalStorage save failed:', e);
+    }
   },
 
   toggleBookmarkProblem(problemId: string): boolean {
@@ -150,19 +237,23 @@ export const storageService = {
     this.saveBookmarks(bookmarks);
   },
 
-  // Comparison list
   getCompareProjectIds(): string[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.COMPARE_IDS);
-    if (!raw) return ['sol-railguard-ai', 'sol-trackvision-edge'];
     try {
-      return JSON.parse(raw);
+      const raw = localStorage.getItem(STORAGE_KEYS.COMPARE_IDS);
+      if (!raw) return ['sol-railguard-ai', 'sol-trackvision-edge'];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : ['sol-railguard-ai', 'sol-trackvision-edge'];
     } catch {
-      return [];
+      return ['sol-railguard-ai', 'sol-trackvision-edge'];
     }
   },
 
   saveCompareProjectIds(ids: string[]): void {
-    localStorage.setItem(STORAGE_KEYS.COMPARE_IDS, JSON.stringify(ids));
+    try {
+      localStorage.setItem(STORAGE_KEYS.COMPARE_IDS, JSON.stringify(ids));
+    } catch (e) {
+      console.warn('LocalStorage save failed:', e);
+    }
   },
 
   toggleCompareProject(projectId: string): boolean {
@@ -173,7 +264,6 @@ export const storageService = {
       newIds = ids.filter(id => id !== projectId);
     } else {
       if (ids.length >= 4) {
-        // limit comparison to 4 items at a time
         newIds = [...ids.slice(1), projectId];
       } else {
         newIds = [...ids, projectId];
@@ -187,26 +277,29 @@ export const storageService = {
     this.saveCompareProjectIds([]);
   },
 
-  // AI Configuration
   getAIConfig(): AIConfig {
-    const raw = localStorage.getItem(STORAGE_KEYS.AI_CONFIG);
-    if (!raw) return { provider: 'built-in' };
     try {
-      return JSON.parse(raw);
+      const raw = localStorage.getItem(STORAGE_KEYS.AI_CONFIG);
+      if (!raw) return { provider: 'built-in' };
+      return JSON.parse(raw) || { provider: 'built-in' };
     } catch {
       return { provider: 'built-in' };
     }
   },
 
   saveAIConfig(config: AIConfig): void {
-    localStorage.setItem(STORAGE_KEYS.AI_CONFIG, JSON.stringify(config));
+    try {
+      localStorage.setItem(STORAGE_KEYS.AI_CONFIG, JSON.stringify(config));
+    } catch (e) {
+      console.warn('LocalStorage save failed:', e);
+    }
   },
 
-  // Admin and Data Reset
   resetToFactoryData(): void {
     this.saveProblems(INITIAL_PROBLEMS);
     this.saveProjects(INITIAL_PROJECTS);
     this.saveHackathons(INITIAL_HACKATHONS);
+    this.saveCompareProjectIds(['sol-railguard-ai', 'sol-trackvision-edge']);
   },
 
   exportAllData(): string {
@@ -224,8 +317,8 @@ export const storageService = {
   importData(jsonString: string): { success: boolean; error?: string } {
     try {
       const data = JSON.parse(jsonString);
-      if (Array.isArray(data.problems)) this.saveProblems(data.problems);
-      if (Array.isArray(data.projects)) this.saveProjects(data.projects);
+      if (Array.isArray(data.problems)) this.saveProblems(data.problems.map(sanitizeProblem));
+      if (Array.isArray(data.projects)) this.saveProjects(data.projects.map(sanitizeProject));
       if (Array.isArray(data.hackathons)) this.saveHackathons(data.hackathons);
       if (data.bookmarks) this.saveBookmarks(data.bookmarks);
       return { success: true };

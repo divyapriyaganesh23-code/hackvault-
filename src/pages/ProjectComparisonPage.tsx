@@ -42,7 +42,7 @@ export const ProjectComparisonPage: React.FC<Props> = ({
   const [exportNotice, setExportNotice] = useState(false);
 
   useEffect(() => {
-    const list = allProjects.filter(p => compareProjectIds.includes(p.id));
+    const list = (allProjects || []).filter(p => compareProjectIds?.includes(p.id) || false);
     setSelectedProjects(list);
   }, [allProjects, compareProjectIds]);
 
@@ -100,7 +100,7 @@ ${analysis ? `
   };
 
   // Remaining projects that can be added
-  const remainingProjects = allProjects.filter(p => !compareProjectIds.includes(p.id));
+  const remainingProjects = (allProjects || []).filter(p => !(compareProjectIds || []).includes(p.id));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">

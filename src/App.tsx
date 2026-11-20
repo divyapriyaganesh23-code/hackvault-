@@ -18,17 +18,17 @@ export function App() {
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(null);
   const [searchParam, setSearchParam] = useState<string>('');
   
-  // Database states
-  const [problems, setProblems] = useState<ProblemStatement[]>([]);
-  const [projects, setProjects] = useState<ProjectSolution[]>([]);
-  const [hackathons, setHackathons] = useState<HackathonEvent[]>([]);
-  const [bookmarks, setBookmarks] = useState<UserBookmark>({ problemIds: [], projectIds: [], collections: [], researchNotes: {} });
-  const [compareProjectIds, setCompareProjectIds] = useState<string[]>([]);
+  // Database states initialized synchronously with safe seed fallbacks
+  const [problems, setProblems] = useState<ProblemStatement[]>(() => storageService.getProblems());
+  const [projects, setProjects] = useState<ProjectSolution[]>(() => storageService.getProjects());
+  const [hackathons, setHackathons] = useState<HackathonEvent[]>(() => storageService.getHackathons());
+  const [bookmarks, setBookmarks] = useState<UserBookmark>(() => storageService.getBookmarks());
+  const [compareProjectIds, setCompareProjectIds] = useState<string[]>(() => storageService.getCompareProjectIds());
   
   // Settings modal
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Load database on mount
+  // Reload data from storage whenever updated
   const reloadData = () => {
     setProblems(storageService.getProblems());
     setProjects(storageService.getProjects());
@@ -53,13 +53,17 @@ export function App() {
     } else {
       setCurrentTab(tab);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {}
   };
 
   const handleSelectProblem = (problemId: string) => {
     setSelectedProblemId(problemId);
     setCurrentTab('details');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {}
   };
 
   const handleToggleBookmarkProblem = (problemId: string) => {
@@ -78,7 +82,7 @@ export function App() {
   };
 
   const handleRemoveFromCompare = (projectId: string) => {
-    const updated = compareProjectIds.filter(id => id !== projectId);
+    const updated = (compareProjectIds || []).filter(id => id !== projectId);
     storageService.saveCompareProjectIds(updated);
     setCompareProjectIds(updated);
   };
@@ -92,7 +96,8 @@ export function App() {
     handleToggleCompare(projectId);
   };
 
-  const selectedProblem = problems.find(p => p.id === selectedProblemId) || problems[0];
+  // Safe selected problem
+  const selectedProblem = (problems || []).find(p => p.id === selectedProblemId) || problems?.[0];
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
@@ -101,8 +106,8 @@ export function App() {
       <Navbar
         currentTab={currentTab}
         onNavigate={handleNavigate}
-        bookmarkCount={bookmarks.problemIds.length + bookmarks.projectIds.length}
-        compareCount={compareProjectIds.length}
+        bookmarkCount={(bookmarks?.problemIds?.length || 0) + (bookmarks?.projectIds?.length || 0)}
+        compareCount={compareProjectIds?.length || 0}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
@@ -110,11 +115,11 @@ export function App() {
       <main className="flex-1">
         {currentTab === 'home' && (
           <HomePage
-            problems={problems}
-            projects={projects}
-            hackathons={hackathons}
-            bookmarkedProblemIds={bookmarks.problemIds}
-            compareProjectIds={compareProjectIds}
+            problems={problems || []}
+            projects={projects || []}
+            hackathons={hackathons || []}
+            bookmarkedProblemIds={bookmarks?.problemIds || []}
+            compareProjectIds={compareProjectIds || []}
             onNavigate={handleNavigate}
             onToggleBookmark={handleToggleBookmarkProblem}
             onToggleCompare={handleToggleCompare}
@@ -124,8 +129,8 @@ export function App() {
 
         {currentTab === 'problems' && (
           <ProblemExplorerPage
-            problems={problems}
-            bookmarkedProblemIds={bookmarks.problemIds}
+            problems={problems || []}
+            bookmarkedProblemIds={bookmarks?.problemIds || []}
             initialSearchQuery={searchParam}
             onToggleBookmark={handleToggleBookmarkProblem}
             onSelectProblem={handleSelectProblem}
@@ -136,10 +141,10 @@ export function App() {
         {currentTab === 'details' && selectedProblem && (
           <ProblemDetailsPage
             problem={selectedProblem}
-            allProblems={problems}
-            allProjects={projects}
-            bookmarkedProblemIds={bookmarks.problemIds}
-            compareProjectIds={compareProjectIds}
+            allProblems={problems || []}
+            allProjects={projects || []}
+            bookmarkedProblemIds={bookmarks?.problemIds || []}
+            compareProjectIds={compareProjectIds || []}
             onBack={() => handleNavigate('problems')}
             onToggleBookmark={handleToggleBookmarkProblem}
             onToggleCompare={handleToggleCompare}
@@ -150,9 +155,9 @@ export function App() {
 
         {currentTab === 'solutions' && (
           <SolutionsExplorerPage
-            projects={projects}
-            problems={problems}
-            compareProjectIds={compareProjectIds}
+            projects={projects || []}
+            problems={problems || []}
+            compareProjectIds={compareProjectIds || []}
             initialSearchQuery={searchParam}
             onToggleCompare={handleToggleCompare}
             onSelectProblem={handleSelectProblem}
@@ -162,9 +167,9 @@ export function App() {
 
         {currentTab === 'compare' && (
           <ProjectComparisonPage
-            allProjects={projects}
-            allProblems={problems}
-            compareProjectIds={compareProjectIds}
+            allProjects={projects || []}
+            allProblems={problems || []}
+            compareProjectIds={compareProjectIds || []}
             onRemoveFromCompare={handleRemoveFromCompare}
             onClearCompare={handleClearCompare}
             onAddProjectToCompare={handleAddProjectToCompare}
@@ -174,19 +179,19 @@ export function App() {
 
         {currentTab === 'similar' && (
           <SimilarFinderPage
-            problems={problems}
-            projects={projects}
+            problems={problems || []}
+            projects={projects || []}
             onSelectProblem={handleSelectProblem}
             onToggleCompare={handleToggleCompare}
-            compareProjectIds={compareProjectIds}
+            compareProjectIds={compareProjectIds || []}
           />
         )}
 
         {currentTab === 'saved' && (
           <SavedProjectsPage
-            problems={problems}
-            projects={projects}
-            bookmarks={bookmarks}
+            problems={problems || []}
+            projects={projects || []}
+            bookmarks={bookmarks || { problemIds: [], projectIds: [], collections: [], researchNotes: {} }}
             onRefreshBookmarks={() => setBookmarks(storageService.getBookmarks())}
             onSelectProblem={handleSelectProblem}
             onToggleBookmarkProblem={handleToggleBookmarkProblem}
@@ -197,9 +202,9 @@ export function App() {
 
         {currentTab === 'admin' && (
           <AdminPage
-            problems={problems}
-            projects={projects}
-            hackathons={hackathons}
+            problems={problems || []}
+            projects={projects || []}
+            hackathons={hackathons || []}
             onDataChanged={reloadData}
           />
         )}

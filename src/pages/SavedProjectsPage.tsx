@@ -44,8 +44,8 @@ export const SavedProjectsPage: React.FC<Props> = ({
   const [isCreatingCol, setIsCreatingCol] = useState(false);
   const [exportNotice, setExportNotice] = useState(false);
 
-  const bookmarkedProblems = problems.filter(p => bookmarks.problemIds.includes(p.id));
-  const savedProjects = projects.filter(p => bookmarks.projectIds.includes(p.id));
+  const bookmarkedProblems = (problems || []).filter(p => bookmarks?.problemIds?.includes(p.id) || false);
+  const savedProjects = (projects || []).filter(p => bookmarks?.projectIds?.includes(p.id) || false);
 
   const handleCreateCollection = (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,13 +304,13 @@ ${savedProjects.map(proj => `
 
       {activeTab === 'notes' && (
         <div className="space-y-4">
-          {Object.keys(bookmarks.researchNotes).length === 0 ? (
+          {Object.keys(bookmarks?.researchNotes || {}).length === 0 ? (
             <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-xs text-slate-500">
               No notes saved yet. Open any Problem Details page to add custom brainstorm scratchpad notes for your team!
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              {Object.entries(bookmarks.researchNotes).map(([problemId, note]) => {
+              {Object.entries(bookmarks?.researchNotes || {}).map(([problemId, note]) => {
                 const problem = problems.find(p => p.id === problemId);
                 return (
                   <div key={problemId} className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2">

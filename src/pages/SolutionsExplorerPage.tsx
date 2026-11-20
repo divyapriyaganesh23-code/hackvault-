@@ -49,11 +49,11 @@ export const SolutionsExplorerPage: React.FC<Props> = ({
     return projects.filter(p => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
-        const matchesName = p.name.toLowerCase().includes(q);
-        const matchesDesc = p.shortDescription.toLowerCase().includes(q);
-        const matchesApproach = p.approach.toLowerCase().includes(q);
-        const matchesTech = p.technologies.some(t => t.toLowerCase().includes(q));
-        const matchesTeam = p.teamName?.toLowerCase().includes(q);
+        const matchesName = (p.name || '').toLowerCase().includes(q);
+        const matchesDesc = (p.shortDescription || '').toLowerCase().includes(q);
+        const matchesApproach = (p.approach || '').toLowerCase().includes(q);
+        const matchesTech = (p.technologies || []).some(t => (t || '').toLowerCase().includes(q));
+        const matchesTeam = (p.teamName || '').toLowerCase().includes(q);
         if (!matchesName && !matchesDesc && !matchesApproach && !matchesTech && !matchesTeam) {
           return false;
         }
@@ -62,7 +62,7 @@ export const SolutionsExplorerPage: React.FC<Props> = ({
       if (selectedHackathon !== 'All' && p.hackathonName !== selectedHackathon) return false;
 
       if (selectedStatus !== 'All') {
-        if (selectedStatus === 'Winners' && !p.verificationStatus.includes('Winner')) return false;
+        if (selectedStatus === 'Winners' && !p.verificationStatus?.includes('Winner')) return false;
         if (selectedStatus === 'Finalists' && p.verificationStatus !== 'Finalist') return false;
       }
 

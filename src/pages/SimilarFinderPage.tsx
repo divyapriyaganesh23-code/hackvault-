@@ -36,7 +36,7 @@ export const SimilarFinderPage: React.FC<Props> = ({
   const [customDomain, setCustomDomain] = useState('All');
   const [hasSearched, setHasSearched] = useState(false);
 
-  const domains = useMemo(() => ['All', ...Array.from(new Set(problems.map(p => p.domain)))], [problems]);
+  const domains = useMemo(() => ['All', ...Array.from(new Set((problems || []).map(p => p.domain)))], [problems]);
 
   // If student picks an existing problem
   const handleSelectExisting = (id: string) => {

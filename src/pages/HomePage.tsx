@@ -79,8 +79,8 @@ export const HomePage: React.FC<Props> = ({
     'Blockchain & Web3'
   ];
 
-  const recentProblems = problems.slice(0, 4);
-  const featuredWinners = projects.filter(p => p.verificationStatus.includes('Winner')).slice(0, 3);
+  const recentProblems = (problems || []).slice(0, 4);
+  const featuredWinners = (projects || []).filter(p => p?.verificationStatus?.includes('Winner')).slice(0, 3);
 
   return (
     <div className="space-y-16 pb-16">
@@ -231,8 +231,8 @@ export const HomePage: React.FC<Props> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {recentProblems.map((problem) => {
-            const isBookmarked = bookmarkedProblemIds.includes(problem.id);
-            const relatedCount = problem.projectSolutionIds.length;
+            const isBookmarked = bookmarkedProblemIds?.includes(problem.id) || false;
+            const relatedCount = problem.projectSolutionIds?.length || 0;
 
             return (
               <div
@@ -296,14 +296,14 @@ export const HomePage: React.FC<Props> = ({
 
                   {/* Tech stack pills */}
                   <div className="flex flex-wrap gap-1.5">
-                    {problem.suggestedTechStack.slice(0, 4).map((tech) => (
+                    {(problem.suggestedTechStack || []).slice(0, 4).map((tech) => (
                       <span key={tech} className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700">
                         {tech}
                       </span>
                     ))}
-                    {problem.suggestedTechStack.length > 4 && (
+                    {(problem.suggestedTechStack?.length || 0) > 4 && (
                       <span className="text-[11px] text-slate-400 self-center">
-                        +{problem.suggestedTechStack.length - 4} more
+                        +{(problem.suggestedTechStack?.length || 0) - 4} more
                       </span>
                     )}
                   </div>

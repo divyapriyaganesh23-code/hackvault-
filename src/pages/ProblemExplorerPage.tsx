@@ -57,12 +57,12 @@ export const ProblemExplorerPage: React.FC<Props> = ({
       // Search text match
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
-        const matchesCode = p.code.toLowerCase().includes(query);
-        const matchesTitle = p.title.toLowerCase().includes(query);
-        const matchesOrg = p.organization.toLowerCase().includes(query);
-        const matchesDesc = p.originalStatement.toLowerCase().includes(query);
-        const matchesTech = p.suggestedTechStack.some(t => t.toLowerCase().includes(query));
-        const matchesDomain = p.domain.toLowerCase().includes(query);
+        const matchesCode = (p.code || '').toLowerCase().includes(query);
+        const matchesTitle = (p.title || '').toLowerCase().includes(query);
+        const matchesOrg = (p.organization || '').toLowerCase().includes(query);
+        const matchesDesc = (p.originalStatement || '').toLowerCase().includes(query);
+        const matchesTech = (p.suggestedTechStack || []).some(t => (t || '').toLowerCase().includes(query));
+        const matchesDomain = (p.domain || '').toLowerCase().includes(query);
         if (!matchesCode && !matchesTitle && !matchesOrg && !matchesDesc && !matchesTech && !matchesDomain) {
           return false;
         }
@@ -75,7 +75,7 @@ export const ProblemExplorerPage: React.FC<Props> = ({
       if (selectedHackathon !== 'All' && p.hackathonName !== selectedHackathon) return false;
 
       // Year filter
-      if (selectedYear !== 'All' && p.hackathonYear.toString() !== selectedYear) return false;
+      if (selectedYear !== 'All' && (p.hackathonYear ? p.hackathonYear.toString() : '') !== selectedYear) return false;
 
       // Category (Software / Hardware / Both)
       if (selectedCategory !== 'All' && p.category !== selectedCategory) return false;
